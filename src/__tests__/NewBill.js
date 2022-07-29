@@ -52,7 +52,7 @@ describe("Given I am connected as an employee", () => {
         window.onNavigate(ROUTES_PATH.NewBill)
     })
 
-    test('It should call handleChangeFile and return false if file type is not allow ', async () => {
+    test('It should call handleChangeFile and return false if file type is not allow ', () => {
         document.body.innerHTML = NewBillUI()
 
         const onNavigate = (pathname) => {
@@ -64,13 +64,11 @@ describe("Given I am connected as an employee", () => {
         })
 
         const inputFile = screen.getByTestId('file')
-        console.log(inputFile);
 
         const eventChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
         inputFile.addEventListener('change', eventChangeFile)
 
         const file = new File(['foo'], 'test.pdf', { type: 'application/pdf' })
-        // const file = new File(['foo'], 'test.png', { type: 'image/png' })
         Object.defineProperty(inputFile, 'files', { value: [file] })
         fireEvent.change(inputFile)
 
@@ -78,7 +76,7 @@ describe("Given I am connected as an employee", () => {
         expect(eventChangeFile.mock.results[0].value).toBeFalsy()
     })
 
-    test('It should call handleChangeFile', async () => {
+    test('It should call handleChangeFile', () => {
         document.body.innerHTML = NewBillUI()
 
         const onNavigate = (pathname) => {
@@ -90,8 +88,6 @@ describe("Given I am connected as an employee", () => {
         })
 
         const inputFile = screen.getByTestId('file')
-        console.log(inputFile);
-
         const eventChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
         inputFile.addEventListener('change', eventChangeFile)
 
@@ -101,6 +97,39 @@ describe("Given I am connected as an employee", () => {
 
         expect(eventChangeFile).toHaveBeenCalled()
         expect(eventChangeFile.mock.results[0].value).toBeTruthy()
+    })
+  })
+
+  describe('When I submit form', () => {
+    beforeAll(() => {
+        Object.defineProperty(window, 'localStorage', { value: localStorageMock })
+        window.localStorage.setItem('user', JSON.stringify({
+            type: 'Employee'
+        }))
+        const root = document.createElement("div")
+        root.setAttribute("id", "root")
+        document.body.append(root)
+        router()
+        window.onNavigate(ROUTES_PATH.NewBill)
+    })
+
+    test('It should call handleSubmit ', () => {
+        document.body.innerHTML = NewBillUI()
+
+        const onNavigate = (pathname) => {
+            document.body.innerHTML = ROUTES({ pathname })
+        }
+
+        const newBill = new NewBill({
+            document, onNavigate, store: mockStore, localStorage: window.localStorage
+        })
+
+        const submitButton = screen.getByTestId('form-new-bill')
+
+        const eventSubmit = jest.fn((e) => newBill.handleSubmit(e))
+        submitButton.addEventListener('submit', eventSubmit)
+        fireEvent.submit(submitButton)
+        expect(eventSubmit).toHaveBeenCalled()
     })
   })
 
