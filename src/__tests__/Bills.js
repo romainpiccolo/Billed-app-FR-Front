@@ -3,6 +3,7 @@
  */
 
 import {screen, waitFor} from "@testing-library/dom"
+import userEvent from '@testing-library/user-event'
 import BillsUI from "../views/BillsUI.js"
 import Bill, { getBills } from "../containers/Bills"
 
@@ -17,7 +18,6 @@ jest.mock("../app/store", () => mockStore)
 
 
 describe("Given I am connected as an employee", () => {
-  describe("When I am on Bills Page", () => {
     beforeAll(() => {
         Object.defineProperty(window, 'localStorage', { value: localStorageMock })
         window.localStorage.setItem('user', JSON.stringify({
@@ -30,27 +30,53 @@ describe("Given I am connected as an employee", () => {
         window.onNavigate(ROUTES_PATH.Bills)
     })
 
-    test("fetches bills from mock API GET", async () => {
-        await waitFor(() => screen.getByText("Mes notes de frais"))
-        expect(screen.getByTestId("btn-new-bill")).toBeTruthy()
-    })
 
-    test("Then bill icon in vertical layout should be highlighted", async () => {
-      await waitFor(() => screen.getByTestId('icon-window'))
-      const windowIcon = screen.getByTestId('icon-window')
+    describe("When I am on Bills Page", () => {
+        test("Then it should render new bill button", async () => {
+            await waitFor(() => screen.getByText("Mes notes de frais"))
+            expect(screen.getByTestId("btn-new-bill")).toBeTruthy()
+        })
+        test("Then bill icon in vertical layout should be highlighted", async () => {
+            await waitFor(() => screen.getByTestId('icon-window'))
+            const windowIcon = screen.getByTestId('icon-window')
 
-      //to-do write expect expression
-      expect(windowIcon.classList[0]).toEqual('active-icon')
+            //to-do write expect expression
+            expect(windowIcon.classList[0]).toEqual('active-icon')
 
+        })
+        test("Then bills should be ordered from earliest to latest", () => {
+            document.body.innerHTML = BillsUI({ data: bills })
+            const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
+            const antiChrono = (a, b) => ((a < b) ? 1 : -1)
+            const datesSorted = [...dates].sort(antiChrono)
+            expect(dates).toEqual(datesSorted)
+        })
     })
-    test("Then bills should be ordered from earliest to latest", () => {
-      document.body.innerHTML = BillsUI({ data: bills })
-      const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
-      const antiChrono = (a, b) => ((a < b) ? 1 : -1)
-      const datesSorted = [...dates].sort(antiChrono)
-      expect(dates).toEqual(datesSorted)
+   
+
+    describe("When i click on IconEye", () => {
+        test('Then it should call handleClickIconEye', () => {
+            
+            $.prototype.modal = () => {}
+
+            const onNavigate = (pathname) => {
+                document.body.innerHTML = ROUTES({ pathname })
+            }
+        
+            const bill = new Bill({
+            document, onNavigate, store: null, localStorage: window.localStorage
+            })
+    
+            document.body.innerHTML = BillsUI({ data: bills })
+
+            const iconEye = screen.getAllByTestId('icon-eye')[0]
+            const handleClickIconEye = jest.fn((icon) => bill.handleClickIconEye(icon))
+    
+            iconEye.addEventListener('click', () => handleClickIconEye(iconEye));
+            userEvent.click(iconEye)
+            expect(handleClickIconEye).toHaveBeenCalled()
+        })
     })
-  })
 
     describe("When an error occurs on API", () => {
         beforeEach(() => {
@@ -80,7 +106,6 @@ describe("Given I am connected as an employee", () => {
             const message = await screen.getByText(/Erreur 404/)
             expect(message).toBeTruthy()
         })
-    
         test("fetches messages from an API and fails with 500 message error", async () => {
             mockStore.bills.mockImplementationOnce(() => {
                 return {
@@ -95,7 +120,5 @@ describe("Given I am connected as an employee", () => {
             expect(message).toBeTruthy()
         })
     })
-      
-
 
 })
