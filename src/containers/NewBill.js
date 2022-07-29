@@ -24,10 +24,11 @@ export default class NewBill {
 
     if (!allowedTypes.includes(file.type)){
         console.log('Erreur de format de fichier')
-        return
+        return false
     }
 
     this.file = file;
+    return true
   }
   handleSubmit = e => {
     e.preventDefault()

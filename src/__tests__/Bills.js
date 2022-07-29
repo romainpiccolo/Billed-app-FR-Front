@@ -8,7 +8,7 @@ import BillsUI from "../views/BillsUI.js"
 import Bill, { getBills } from "../containers/Bills"
 
 import { bills } from "../fixtures/bills.js"
-import { ROUTES_PATH} from "../constants/routes.js";
+import { ROUTES, ROUTES_PATH} from "../constants/routes.js";
 import {localStorageMock} from "../__mocks__/localStorage.js";
 import mockStore from "../__mocks__/store"
 
