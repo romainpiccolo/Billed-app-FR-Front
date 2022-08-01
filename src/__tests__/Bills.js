@@ -32,19 +32,16 @@ describe("Given I am connected as an employee", () => {
 
 
     describe("When I am on Bills Page", () => {
-        test("Then it should render new bill button", async () => {
+        test("It should render new bill button", async () => {
             await waitFor(() => screen.getByText("Mes notes de frais"))
             expect(screen.getByTestId("btn-new-bill")).toBeTruthy()
         })
-        test("Then bill icon in vertical layout should be highlighted", async () => {
+        test("It should highlighted bill icon in vertical layout", async () => {
             await waitFor(() => screen.getByTestId('icon-window'))
             const windowIcon = screen.getByTestId('icon-window')
-
-            //to-do write expect expression
-            expect(windowIcon.classList[0]).toEqual('active-icon')
-
+            expect(windowIcon.classList.contains('active-icon')).toBeTruthy()
         })
-        test("Then bills should be ordered from earliest to latest", () => {
+        test("It should ordered bills from earliest to latest", () => {
             document.body.innerHTML = BillsUI({ data: bills })
             const dates = screen.getAllByText(/^(19|20)\d\d[- /.](0[1-9]|1[012])[- /.](0[1-9]|[12][0-9]|3[01])$/i).map(a => a.innerHTML)
             const antiChrono = (a, b) => ((a < b) ? 1 : -1)
@@ -55,7 +52,7 @@ describe("Given I am connected as an employee", () => {
    
 
     describe("When i click on IconEye", () => {
-        test('Then it should call handleClickIconEye', () => {
+        test('It should call handleClickIconEye', () => {
             
             $.prototype.modal = () => {}
 
@@ -94,26 +91,23 @@ describe("Given I am connected as an employee", () => {
             document.body.appendChild(root)
             router()
         })
-        test("fetches bills from an API and fails with 404 message error", async () => {
+        test("It should fails with 404 message error", async () => {
             mockStore.bills.mockImplementationOnce(() => {
                 return {
-                list : () =>  {
-                    return Promise.reject(new Error("Erreur 404"))
+                    list : () => { return Promise.reject(new Error("Erreur 404")) }
                 }
-                }})
+            })
             window.onNavigate(ROUTES_PATH.Bills)
             await new Promise(process.nextTick);
             const message = await screen.getByText(/Erreur 404/)
             expect(message).toBeTruthy()
         })
-        test("fetches messages from an API and fails with 500 message error", async () => {
+        test("It should fails with 500 message error", async () => {
             mockStore.bills.mockImplementationOnce(() => {
                 return {
-                list : () =>  {
-                    return Promise.reject(new Error("Erreur 500"))
+                    list : () => { return Promise.reject(new Error("Erreur 500")) }
                 }
-                }})
-        
+            })
             window.onNavigate(ROUTES_PATH.Bills)
             await new Promise(process.nextTick);
             const message = await screen.getByText(/Erreur 500/)

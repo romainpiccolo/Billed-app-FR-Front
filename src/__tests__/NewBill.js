@@ -28,11 +28,11 @@ describe("Given I am connected as an employee", () => {
         window.onNavigate(ROUTES_PATH.NewBill)
     })
 
-    test('It display correctly', async () => {
+    test('It should display New Bill page', async () => {
         await waitFor(() => screen.getByText("Envoyer une note de frais"))
         expect(screen.getByTestId("form-new-bill")).toBeTruthy()
     })
-    test("Then mail icon in vertical layout should be highlighted", async () => {
+    test("It should highlighted mail icon in vertical layout", async () => {
         await waitFor(() => screen.getByTestId('icon-mail'))
         const mailIcon = screen.getByTestId('icon-mail')
         expect(mailIcon.classList.contains('active-icon')).toBeTruthy()
@@ -52,23 +52,42 @@ describe("Given I am connected as an employee", () => {
         window.onNavigate(ROUTES_PATH.NewBill)
     })
 
-    test('It should call handleChangeFile and return false if file type is not allow ', () => {
+    beforeEach(() => {
         document.body.innerHTML = NewBillUI()
+    })
 
+    test('It should call handleChangeFile', () => {
         const onNavigate = (pathname) => {
             document.body.innerHTML = ROUTES({ pathname })
         }
-
         const newBill = new NewBill({
             document, onNavigate, store: null, localStorage: window.localStorage
         })
-
         const inputFile = screen.getByTestId('file')
-
         const eventChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
-        inputFile.addEventListener('change', eventChangeFile)
+        const file = new File(['foo'], 'test.png', { type: 'image/png' })
 
+        inputFile.addEventListener('change', eventChangeFile)
+        Object.defineProperty(inputFile, 'files', { value: [file] })
+        fireEvent.change(inputFile)
+
+        expect(eventChangeFile).toHaveBeenCalled()
+        expect(eventChangeFile.mock.results[0].value).toBeTruthy()
+    })
+
+    test('It should call handleChangeFile and return false if file type is not allow ', () => {
+        const onNavigate = (pathname) => {
+            document.body.innerHTML = ROUTES({ pathname })
+        }
+        const newBill = new NewBill({
+            document, onNavigate, store: null, localStorage: window.localStorage
+        })
+        
+        const inputFile = screen.getByTestId('file')
+        const eventChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
         const file = new File(['foo'], 'test.pdf', { type: 'application/pdf' })
+
+        inputFile.addEventListener('change', eventChangeFile)
         Object.defineProperty(inputFile, 'files', { value: [file] })
         fireEvent.change(inputFile)
 
@@ -76,28 +95,7 @@ describe("Given I am connected as an employee", () => {
         expect(eventChangeFile.mock.results[0].value).toBeFalsy()
     })
 
-    test('It should call handleChangeFile', () => {
-        document.body.innerHTML = NewBillUI()
-
-        const onNavigate = (pathname) => {
-            document.body.innerHTML = ROUTES({ pathname })
-        }
-
-        const newBill = new NewBill({
-            document, onNavigate, store: null, localStorage: window.localStorage
-        })
-
-        const inputFile = screen.getByTestId('file')
-        const eventChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
-        inputFile.addEventListener('change', eventChangeFile)
-
-        const file = new File(['foo'], 'test.png', { type: 'image/png' })
-        Object.defineProperty(inputFile, 'files', { value: [file] })
-        fireEvent.change(inputFile)
-
-        expect(eventChangeFile).toHaveBeenCalled()
-        expect(eventChangeFile.mock.results[0].value).toBeTruthy()
-    })
+    
   })
 
   describe('When I submit form', () => {
