@@ -13,7 +13,7 @@ export default class NewBill {
     this.fileUrl = null
     this.fileName = null
     this.billId = null
-    
+
     new Logout({ document, localStorage, onNavigate })
   }
   handleChangeFile = e => {
@@ -62,6 +62,6 @@ export default class NewBill {
     })
     .then(() => {
       this.onNavigate(ROUTES_PATH['Bills'])
-    }).catch(error => this.document.body.innerHTML = error.message)
+    }).catch(error => console.error(error.message))
   }
 }

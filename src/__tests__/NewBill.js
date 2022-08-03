@@ -155,6 +155,8 @@ describe("Given I am connected as an employee", () => {
             }
         })
 
+        const logSpy = jest.spyOn(console, 'error');
+
         document.body.innerHTML = NewBillUI()
 
         const onNavigate = (pathname) => {
@@ -171,13 +173,10 @@ describe("Given I am connected as an employee", () => {
         const vat = screen.getByTestId('vat');
         const pct = screen.getByTestId('pct');
         const inputFile = screen.getByTestId('file')
-        const file = new File(['foo'], 'test.png', { type: 'image/png' })
         const submitButton = screen.getByTestId('form-new-bill')
+       
+        const file = new File(['foo'], 'test.png', { type: 'image/png' })
         Object.defineProperty(inputFile, 'files', { value: [file] })
-        const eventChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
-        inputFile.addEventListener('change', eventChangeFile)
-        fireEvent.change(inputFile)
-
         expense.value = 'Test jest';
         datepicker.value = '2022-08-03'
         amount.value = 25;
@@ -186,11 +185,8 @@ describe("Given I am connected as an employee", () => {
 
         fireEvent.submit(submitButton)
 
-
-
         await new Promise(process.nextTick);
-        const message = await screen.getByText("Erreur 500")
-        expect(message).toBeTruthy()
+        expect(logSpy).toHaveBeenCalledWith("Erreur 500")
     })
 })
 
