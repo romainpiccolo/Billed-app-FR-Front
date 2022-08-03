@@ -132,7 +132,7 @@ describe("Given I am connected as an employee", () => {
   })
 
 
-  describe("When an error occurs on API", () => {
+  describe("When i make a POST request on API", () => {
     beforeEach(() => {
         jest.spyOn(mockStore, "bills")
         Object.defineProperty(
@@ -173,10 +173,11 @@ describe("Given I am connected as an employee", () => {
         const vat = screen.getByTestId('vat');
         const pct = screen.getByTestId('pct');
         const inputFile = screen.getByTestId('file')
+
         const submitButton = screen.getByTestId('form-new-bill')
-       
         const file = new File(['foo'], 'test.png', { type: 'image/png' })
         Object.defineProperty(inputFile, 'files', { value: [file] })
+
         expense.value = 'Test jest';
         datepicker.value = '2022-08-03'
         amount.value = 25;
@@ -187,6 +188,45 @@ describe("Given I am connected as an employee", () => {
 
         await new Promise(process.nextTick);
         expect(logSpy).toHaveBeenCalledWith("Erreur 500")
+    })
+    test('It should success and navigate to Bills page', async () => {
+        mockStore.bills.mockImplementationOnce(() => {
+            return {
+                create : () => { return Promise.resolve() }
+            }
+        })
+        document.body.innerHTML = NewBillUI()
+
+        const onNavigate = (pathname) => {
+            document.body.innerHTML = ROUTES({ pathname })
+        }
+
+        const newBill = new NewBill({
+            document, onNavigate, store: mockStore, localStorage: window.localStorage
+        })
+
+        const expense = screen.getByTestId('expense-name');
+        const datepicker = screen.getByTestId('datepicker');
+        const amount = screen.getByTestId('amount');
+        const vat = screen.getByTestId('vat');
+        const pct = screen.getByTestId('pct');
+        const inputFile = screen.getByTestId('file')
+
+        const submitButton = screen.getByTestId('form-new-bill')
+        const file = new File(['foo'], 'test.png', { type: 'image/png' })
+        Object.defineProperty(inputFile, 'files', { value: [file] })
+
+        expense.value = 'Test jest';
+        datepicker.value = '2022-08-03'
+        amount.value = 25;
+        vat.value = '25';
+        pct.value = 25;
+
+        fireEvent.submit(submitButton)
+
+        await new Promise(process.nextTick);
+        await waitFor(() => screen.getByText("Mes notes de frais"))
+        expect(screen.getByTestId("btn-new-bill")).toBeTruthy()
     })
 })
 
