@@ -131,4 +131,67 @@ describe("Given I am connected as an employee", () => {
     })
   })
 
+
+  describe("When an error occurs on API", () => {
+    beforeEach(() => {
+        jest.spyOn(mockStore, "bills")
+        Object.defineProperty(
+            window,
+            'localStorage',
+            { value: localStorageMock }
+        )
+        window.localStorage.setItem('user', JSON.stringify({
+            type: 'Employee',
+            email: 'employee@test.tld'
+        }))
+        const root = document.createElement("div")
+        root.setAttribute("id", "root")
+        document.body.appendChild(root)
+    })
+    test("It should fails with 500 message error", async () => {
+        mockStore.bills.mockImplementationOnce(() => {
+            return {
+                create : () => { return Promise.reject(new Error("Erreur 500")) }
+            }
+        })
+
+        document.body.innerHTML = NewBillUI()
+
+        const onNavigate = (pathname) => {
+            document.body.innerHTML = ROUTES({ pathname })
+        }
+
+        const newBill = new NewBill({
+            document, onNavigate, store: mockStore, localStorage: window.localStorage
+        })
+
+        const expense = screen.getByTestId('expense-name');
+        const datepicker = screen.getByTestId('datepicker');
+        const amount = screen.getByTestId('amount');
+        const vat = screen.getByTestId('vat');
+        const pct = screen.getByTestId('pct');
+        const inputFile = screen.getByTestId('file')
+        const file = new File(['foo'], 'test.png', { type: 'image/png' })
+        const submitButton = screen.getByTestId('form-new-bill')
+        Object.defineProperty(inputFile, 'files', { value: [file] })
+        const eventChangeFile = jest.fn((e) => newBill.handleChangeFile(e))
+        inputFile.addEventListener('change', eventChangeFile)
+        fireEvent.change(inputFile)
+
+        expense.value = 'Test jest';
+        datepicker.value = '2022-08-03'
+        amount.value = 25;
+        vat.value = '25';
+        pct.value = 25;
+
+        fireEvent.submit(submitButton)
+
+
+
+        await new Promise(process.nextTick);
+        const message = await screen.getByText("Erreur 500")
+        expect(message).toBeTruthy()
+    })
+})
+
 })
